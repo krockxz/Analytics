@@ -183,6 +183,60 @@ This creates:
 }
 ```
 
+## Assumptions and Trade-offs
+
+### Design Decisions
+
+1. **Session Identification**
+   - **Assumption**: Sessions are identified via localStorage on the client side
+   - **Trade-off**: Sessions persist across browser tabs but are lost when localStorage is cleared
+   - **Alternative**: Could use cookies for cross-domain tracking, but chose localStorage for simplicity
+
+2. **Event Batching**
+   - **Assumption**: Events can be batched and sent in groups of up to 10
+   - **Trade-off**: Reduces server load but may delay event transmission by up to 5 seconds
+   - **Justification**: For analytics, slight delays are acceptable for performance gains
+
+3. **CORS Configuration**
+   - **Assumption**: Development environment allows all origins (`origin: true`)
+   - **Trade-off**: Less secure but simplifies local development
+   - **Production Note**: Should be restricted to specific domains in production
+
+4. **Database Choice**
+   - **Assumption**: MongoDB Atlas provides sufficient scalability for analytics workload
+   - **Trade-off**: NoSQL flexibility vs. relational data integrity
+   - **Justification**: Event data is naturally document-oriented and benefits from flexible schema
+
+5. **Click Tracking Privacy**
+   - **Assumption**: Password field clicks are explicitly excluded from tracking
+   - **Trade-off**: May miss some interaction data but protects user privacy
+   - **Consideration**: Does not track actual input values, only click coordinates
+
+6. **Session Expiry**
+   - **Assumption**: Sessions are marked inactive based on `lastActivity` timestamp
+   - **Trade-off**: No automatic session timeout mechanism implemented
+   - **Future Enhancement**: Could add background job to expire sessions after N hours of inactivity
+
+7. **Offline Support**
+   - **Assumption**: `navigator.sendBeacon` is available for page unload events
+   - **Trade-off**: Graceful degradation if not supported, but may lose events on older browsers
+   - **Benefit**: Reliable event delivery even when user navigates away
+
+8. **No User Authentication**
+   - **Assumption**: Dashboard is intended for internal use without authentication
+   - **Trade-off**: Simplifies development but exposes analytics data
+   - **Production Note**: Add authentication before deploying publicly
+
+9. **Rate Limiting**
+   - **Assumption**: 1000 requests per IP per 15 minutes is sufficient
+   - **Trade-off**: May block legitimate high-traffic scenarios
+   - **Justification**: Protects against abuse while allowing normal usage patterns
+
+10. **Client-Side Performance**
+    - **Assumption**: Tracking script overhead is acceptable (< 10KB minified)
+    - **Trade-off**: Adds network request but provides valuable insights
+    - **Optimization**: Script is minified and uses efficient event listeners
+
 ## Development
 
 ### Running Tests
